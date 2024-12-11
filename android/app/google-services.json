@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "171832923506",
+    "firebase_url": "https://planit-649ff-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "planit-649ff",
+    "storage_bucket": "planit-649ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171832923506:android:d498bf620ec4c4a86fb9eb",
+        "android_client_info": {
+          "package_name": "com.example.plan_it"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMwbGizSUC4HDwMSxvHmUzGmhXoO_yUOE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
