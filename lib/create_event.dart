@@ -1,26 +1,39 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-class CreateEvent extends StatelessWidget {
+class CreateEvent extends StatefulWidget {
   final VoidCallback onCoordMark;
-  CreateEvent({super.key, required this.onCoordMark});
+  const CreateEvent({super.key, required this.onCoordMark});
 
-  final dbRef = FirebaseDatabase.instance.ref("events");
+  @override
+  State<CreateEvent> createState() => _CreateEventState();
+}
+
+class _CreateEventState extends State<CreateEvent> {
+  final dbRef = FirebaseDatabase.instance.ref();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
   final coordController = TextEditingController();
 
-  void _create(BuildContext context) {
+  void _create() {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
-    dbRef.child(id).set(
-      {
-      'id' : id,
-      'name' : nameController.text.toString(),
-      'description' : descriptionController.text.toString(),
-      'coordinates' : coordController.text.toString()
-      });
-    nameController.clear();
-    descriptionController.clear();
+    dbRef.child('events').child(id).set({
+      'id': id,
+      'name': nameController.text.toString(),
+      'description': descriptionController.text.toString(),
+      'coordinates': coordController.text.toString(),
+    }).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event created successfully!')),
+      );
+      nameController.clear();
+      descriptionController.clear();
+      coordController.clear();
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create event: $error')),
+      );
+    });
     Navigator.pop(context);
   }
 
@@ -74,9 +87,7 @@ class CreateEvent extends StatelessWidget {
             Row(
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    onCoordMark();
-                  },
+                  onPressed: widget.onCoordMark,
                   child: const Text('Mark'),
                 ),
               ],
@@ -94,7 +105,7 @@ class CreateEvent extends StatelessWidget {
                   ),
                   const SizedBox(width: 20),
                   ElevatedButton(
-                    onPressed: () => _create(context),
+                    onPressed: () => _create(),
                     child: const Text('Create'),
                   ),
                 ],
