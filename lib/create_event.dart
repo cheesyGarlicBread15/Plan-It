@@ -2,8 +2,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class CreateEvent extends StatefulWidget {
-  final VoidCallback onCoordMark;
-  const CreateEvent({super.key, required this.onCoordMark});
+  final Function onMarkEvent;
+  final Map<String, dynamic> inputs;
+  const CreateEvent({super.key, required this.onMarkEvent, required this.inputs});
 
   @override
   State<CreateEvent> createState() => _CreateEventState();
@@ -17,7 +18,7 @@ class _CreateEventState extends State<CreateEvent> {
 
   void _create() {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
-    dbRef.child('events').child(id).set({
+    dbRef.child('events').child(  id).set({
       'id': id,
       'name': nameController.text.toString(),
       'description': descriptionController.text.toString(),
@@ -34,6 +35,25 @@ class _CreateEventState extends State<CreateEvent> {
         SnackBar(content: Text('Failed to create event: $error')),
       );
     });
+    Navigator.pop(context);
+  }
+
+  void _retainInputs() {
+    nameController.text = widget.inputs.containsKey('eventName') ? widget.inputs['eventName'] : "";
+    descriptionController.text = widget.inputs.containsKey('eventDescription') ? widget.inputs['eventDescription'] : "";
+    coordController.text = widget.inputs.containsKey('eventCoordinates') ? widget.inputs['eventCoordinates'] : "";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _retainInputs();
+  }
+
+  void _saveInputs() {
+    widget.inputs['eventName'] = nameController.text;
+    widget.inputs['eventDescription'] = descriptionController.text;
+    widget.inputs['eventCoordinates'] = coordController.text;
     Navigator.pop(context);
   }
 
@@ -87,7 +107,10 @@ class _CreateEventState extends State<CreateEvent> {
             Row(
               children: [
                 ElevatedButton(
-                  onPressed: widget.onCoordMark,
+                  onPressed: () {
+                    widget.onMarkEvent(true);
+                    _saveInputs();
+                  },
                   child: const Text('Mark'),
                 ),
               ],
@@ -98,9 +121,7 @@ class _CreateEventState extends State<CreateEvent> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: _saveInputs,
                     child: const Text('Exit'),
                   ),
                   const SizedBox(width: 20),

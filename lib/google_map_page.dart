@@ -19,17 +19,22 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   Marker ?event;
   final dbRef = FirebaseDatabase.instance.ref().child('events');
   Set<Marker> markers = {};
-  
+  Map<String, dynamic> inputs = {};
 
-  void _getMarkCoord(LatLng pos) {
+  void _markEvent(LatLng pos) {
     print("put marker");
     setState(() {
+      if (event != null) {
+        markers.remove(event);
+      }
       event = Marker(
         markerId: const MarkerId('event'),
         infoWindow: const InfoWindow(title: 'event'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
         position: pos
       );
+      markers.add(event!);
+      print(markers.length);
     });
   }
 
@@ -58,7 +63,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
               Marker(
                 markerId: MarkerId(key),
                 position: LatLng(lat, lng),
-                infoWindow: InfoWindow(title: name),
+                infoWindow: InfoWindow(title: name, snippet: description),
                 onTap: _showEvent
               ),
             );
@@ -84,13 +89,15 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       enableDrag: false,
       context: context, 
       builder: (ctx) => CreateEvent(
-        onCoordMark: () {
-          setState(() {
-            markCoord = true;
-          });
-          Navigator.pop(context);
-        },
+        onMarkEvent: _onMarkEvent,
+        inputs: inputs,
       ));
+  }
+
+  void _onMarkEvent(bool val) {
+    setState(() {
+      markCoord = val;
+    });
   }
 
   @override
@@ -99,17 +106,16 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       body: Stack(
         children: [
           GoogleMap(
-            zoomControlsEnabled: false,
             initialCameraPosition: const CameraPosition(
               target: initPos,
               zoom: 13,
             ),
-            onTap: markCoord ? _getMarkCoord : null,
+            onTap: markCoord ? _markEvent : null,
             markers: markers,
           ),
           Positioned(
             bottom: 20,
-            right: 20,
+            left: 20,
             child: !markCoord ? FloatingActionButton(
               onPressed: _createEvent,
               child: const Icon(Icons.add),
@@ -125,7 +131,10 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                 markCoord ? ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      event = null;
+                      if (event != null) {
+                        markers.remove(event);
+                        event = null;
+                      }
                       markCoord = false;
                     });
                   },
