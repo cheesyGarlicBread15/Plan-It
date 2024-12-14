@@ -132,6 +132,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                   onPressed: () {
                     setState(() {
                       if (event != null) {
+                        inputs.remove('eventCoordinates');
                         markers.remove(event);
                         event = null;
                       }
@@ -142,6 +143,9 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                 ) : Container(),
                 markCoord ? ElevatedButton(
                   onPressed: () {
+                    if (event != null) {
+                      inputs['eventCoordinates'] = "${event!.position.latitude.toStringAsFixed(6)}, ${event!.position.longitude.toStringAsFixed(6)}";
+                    }
                     _createEvent();
                   },
                   child: const Text('Done'),

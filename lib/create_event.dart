@@ -16,6 +16,13 @@ class _CreateEventState extends State<CreateEvent> {
   final descriptionController = TextEditingController();
   final coordController = TextEditingController();
 
+  void _clearInputs() {
+    nameController.clear();
+    descriptionController.clear();
+    coordController.clear();
+    widget.inputs.clear();
+  }
+
   void _create() {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     dbRef.child('events').child(  id).set({
@@ -27,14 +34,13 @@ class _CreateEventState extends State<CreateEvent> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event created successfully!')),
       );
-      nameController.clear();
-      descriptionController.clear();
-      coordController.clear();
+      _clearInputs();
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to create event: $error')),
       );
     });
+    widget.onMarkEvent(false);
     Navigator.pop(context);
   }
 
@@ -121,7 +127,10 @@ class _CreateEventState extends State<CreateEvent> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ElevatedButton(
-                    onPressed: _saveInputs,
+                    onPressed: () {
+                    widget.onMarkEvent(false);
+                    _saveInputs();
+                  },
                     child: const Text('Exit'),
                   ),
                   const SizedBox(width: 20),
