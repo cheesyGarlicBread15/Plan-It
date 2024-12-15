@@ -2,7 +2,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:plan_it/create_event.dart';
+import 'package:plan_it/directions_repository.dart';
 import 'package:plan_it/event_details.dart';
+import 'directions_model.dart';
 
 class GoogleMapPage extends StatefulWidget {
   const GoogleMapPage({super.key});
@@ -20,6 +22,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   final dbRef = FirebaseDatabase.instance.ref().child('events');
   Set<Marker> markers = {};
   Map<String, dynamic> inputs = {};
+  Directions? _info;
 
   void _markEvent(LatLng pos) {
     print("put marker");
@@ -107,10 +110,16 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     });
   }
 
+  void getDirections(LatLng origin, LatLng destination) async {
+    final directions = await DirectionsRepository().getDirections(origin: origin, destination: destination);
+    setState(() => _info = directions);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        alignment: Alignment.center,
         children: [
           GoogleMap(
             initialCameraPosition: const CameraPosition(
@@ -119,6 +128,15 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
             ),
             onTap: markCoord ? _markEvent : null,
             markers: markers,
+            polylines: {
+              if (_info != null) 
+                Polyline(
+                  polylineId: const PolylineId('overview_polyline'),
+                  color: Colors.blue,
+                  width: 5,
+                  points: _info.polylinePoints.map((e) => LatLng(e.latitude, e.longitude)).toList(),
+                )
+            },
           ),
           Positioned(
             bottom: 20,
