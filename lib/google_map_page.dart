@@ -34,7 +34,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
         position: pos
       );
       markers.add(event!);
-      print(markers.length);
+      print(markers);
     });
   }
 
@@ -64,7 +64,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                 markerId: MarkerId(key),
                 position: LatLng(lat, lng),
                 infoWindow: InfoWindow(title: name, snippet: description),
-                onTap: _showEvent
+                onTap: () => _showEvent(key),
               ),
             );
           }
@@ -74,12 +74,19 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     });
   }
 
-  void _showEvent() {
-    // include parameters event details and pass to EventDetails
+  void _showEvent(String eventId) async {
+    print(eventId);
+    Map<dynamic, dynamic> eventData = {};
+    // reader
+    final snapshot = await dbRef.child(eventId).get();
+    if (snapshot.exists) {
+      eventData = snapshot.value as Map;
+    }
+    print(eventData);
     showModalBottomSheet(
       isScrollControlled: true,
       context: context, 
-      builder: (ctx) => const EventDetails());
+      builder: (ctx) => EventDetails(eventData: eventData,));
   }
 
   void _createEvent() {

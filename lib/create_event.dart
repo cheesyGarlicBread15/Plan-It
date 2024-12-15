@@ -25,7 +25,7 @@ class _CreateEventState extends State<CreateEvent> {
 
   void _create() {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
-    dbRef.child('events').child(  id).set({
+    dbRef.child('events').child(id).set({
       'id': id,
       'name': nameController.text.toString(),
       'description': descriptionController.text.toString(),
