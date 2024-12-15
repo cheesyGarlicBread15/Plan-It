@@ -84,9 +84,17 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     }
     print(eventData);
     showModalBottomSheet(
-      isScrollControlled: true,
-      context: context, 
-      builder: (ctx) => EventDetails(eventData: eventData,));
+      isScrollControlled: true, // Allow height and full-width customization
+      context: context,
+      builder: (ctx) => Container(
+        width: MediaQuery.of(context).size.width, // Full screen width
+        child: FractionallySizedBox(
+          heightFactor: 0.35, // Modal takes 50% of screen height
+          child: EventDetails(eventData: eventData),
+        ),
+      ),
+    );
+      
   }
 
   void _createEvent() {
