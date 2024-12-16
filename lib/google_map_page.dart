@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:plan_it/Buttons/button1.dart';
 import 'package:plan_it/create_event.dart';
 import 'package:plan_it/event_details.dart';
-import 'package:location/location.dart';
+// import 'package:location/location.dart';
 
 class GoogleMapPage extends StatefulWidget {
   const GoogleMapPage({super.key});
@@ -22,7 +22,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   final dbRef = FirebaseDatabase.instance.ref().child('events');
   Set<Marker> markers = {};
   Map<String, dynamic> inputs = {};
-  final locationController = Location();
+  // final locationController = Location();
   LatLng? currentPos;
 
   void _markEvent(LatLng pos) {
@@ -46,7 +46,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   void initState() {
     super.initState();
     _fetchEvents();
-    WidgetsBinding.instance.addPostFrameCallback((_) async => await fetchLocUpdates());
+    // WidgetsBinding.instance.addPostFrameCallback((_) async => await fetchLocUpdates());
   }
 
   void _fetchEvents() {
@@ -140,34 +140,34 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     });
   }
 
-  Future<void> fetchLocUpdates() async {
-    bool serviceEnabled;
-    PermissionStatus granted;
+  // Future<void> fetchLocUpdates() async {
+  //   bool serviceEnabled;
+  //   PermissionStatus granted;
     
-    serviceEnabled = await locationController.serviceEnabled();
-    if (serviceEnabled) {
-      serviceEnabled = await locationController.requestService();
-    } else {
-      return;
-    }
+  //   serviceEnabled = await locationController.serviceEnabled();
+  //   if (serviceEnabled) {
+  //     serviceEnabled = await locationController.requestService();
+  //   } else {
+  //     return;
+  //   }
 
-    granted = await locationController.hasPermission();
-    if (granted == PermissionStatus.denied) {
-      granted = await locationController.requestPermission();
-      if (granted != PermissionStatus.granted) {
-        return;
-      }
-    }
+  //   granted = await locationController.hasPermission();
+  //   if (granted == PermissionStatus.denied) {
+  //     granted = await locationController.requestPermission();
+  //     if (granted != PermissionStatus.granted) {
+  //       return;
+  //     }
+  //   }
 
-    locationController.onLocationChanged.listen((currentLoc) {
-      if (currentLoc.latitude != null && currentLoc.longitude != null) {
-        setState(() {
-          currentPos = LatLng(currentLoc.latitude!, currentLoc.longitude!);
-        });
-        print(currentPos);
-      }
-    });
-  }
+  //   locationController.onLocationChanged.listen((currentLoc) {
+  //     if (currentLoc.latitude != null && currentLoc.longitude != null) {
+  //       setState(() {
+  //         currentPos = LatLng(currentLoc.latitude!, currentLoc.longitude!);
+  //       });
+  //       print(currentPos);
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
