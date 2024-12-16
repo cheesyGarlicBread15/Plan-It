@@ -1,5 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:plan_it/Buttons/button1.dart';
+import 'package:plan_it/Buttons/button2.dart';
 
 class CreateEvent extends StatefulWidget {
   final Function onMarkEvent;
@@ -11,7 +13,7 @@ class CreateEvent extends StatefulWidget {
 }
 
 class _CreateEventState extends State<CreateEvent> {
-  final dbRef = FirebaseDatabase.instance.ref();
+  final dbRef = FirebaseDatabase.instance.ref().child('events');
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
   final coordController = TextEditingController();
@@ -51,11 +53,12 @@ class _CreateEventState extends State<CreateEvent> {
   void _create() {
     if (checkIfInputsNotEmpty()) {
       final id = DateTime.now().millisecondsSinceEpoch.toString();
-      dbRef.child('events').child(id).set({
+      dbRef.child(id).set({
         'id': id,
         'name': nameController.text.toString(),
         'description': descriptionController.text.toString(),
         'coordinates': coordController.text.toString(),
+        'schedule' : dateTime.toIso8601String()
       }).then((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Event created successfully!')),
@@ -111,129 +114,140 @@ class _CreateEventState extends State<CreateEvent> {
     final hours = dateTime.hour.toString().padLeft(2, '0');
     final minutes = dateTime.minute.toString().padLeft(2, '0');
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 80, 10, 10),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Event Name',
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blue,
-                    width: 2
-                  ),
-                )
-              ),
-              
-              controller: nameController,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blue,
-                    width: 2
-                  ),
-                )
-              ),
-              controller: descriptionController,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Coordinates',
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blue,
-                    width: 2
-                  ),
-                )
-              ),
-              controller: coordController,
-            ),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    widget.onMarkEvent(true);
-                    _saveInputs();
-                  },
-                  child: const Text('Mark'),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final date = await pickDate();
-                    if (date == null) return;
-                
-                    final newDateTime = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      dateTime.hour,
-                      dateTime.minute,
-                    );
-
-                    setState(() {
-                      dateTime = newDateTime;
-                    });
-                  }, 
-                  child: Text('${dateTime.year}/${dateTime.month}/${dateTime.day}')
-                ),
-                const SizedBox(width: 12,),
-                Expanded(
-                  child: ElevatedButton(
-                    child: Text('${hours}:${minutes}'),
-                    onPressed: () async {
-                      final time = await pickTime();
-                      if (time == null) return;
-
-                      final newDateTime = DateTime(
-                        dateTime.year,
-                        dateTime.month,
-                        dateTime.day,
-                        time.hour,
-                        time.minute,
-                      );
-                      setState(() {
-                        dateTime = newDateTime;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                    widget.onMarkEvent(false);
-                    _saveInputs();
-                  },
-                    child: const Text('Exit'),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Event Name',
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blue,
+                          width: 2
+                        ),
+                      )
+                    ),
+                    
+                    controller: nameController,
                   ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: () => _create(),
-                    child: const Text('Create'),
+                  const SizedBox(height: 20),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Description (optional)',
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blue,
+                          width: 2
+                        ),
+                      )
+                    ),
+                    controller: descriptionController,
                   ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Coordinates',
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blue,
+                          width: 2
+                        ),
+                      )
+                    ),
+                    controller: coordController,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Button1(
+                        func: () {
+                          widget.onMarkEvent(true);
+                          _saveInputs();
+                        },
+                        text: 'Mark',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Button2(
+                          func: () async {
+                            final date = await pickDate();
+                            if (date == null) return;
+                        
+                            final newDateTime = DateTime(
+                              date.year,
+                              date.month,
+                              date.day,
+                              dateTime.hour,
+                              dateTime.minute,
+                            );
+                        
+                            setState(() {
+                              dateTime = newDateTime;
+                            });
+                          },
+                          text: '${dateTime.year}/${dateTime.month}/${dateTime.day}',
+                        ),
+                      ),
+                      const SizedBox(width: 12,),
+                      Expanded(
+                        child: Button2(
+                          func: () async {
+                            final time = await pickTime();
+                            if (time == null) return;
+          
+                            final newDateTime = DateTime(
+                              dateTime.year,
+                              dateTime.month,
+                              dateTime.day,
+                              time.hour,
+                              time.minute,
+                            );
+                            setState(() {
+                              dateTime = newDateTime;
+                            });
+                          },
+                          text: '$hours:$minutes',
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Button1(
+                          func: () {
+                            widget.onMarkEvent(false);
+                            _saveInputs();
+                          },
+                          text: 'Exit',
+                        ),
+                        const SizedBox(width: 20),
+                        Button1(
+                          func: () => _create(),
+                          text: 'Create',
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
-            )
-          ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

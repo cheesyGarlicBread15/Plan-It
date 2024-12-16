@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:plan_it/Buttons/button1.dart';
+import 'package:plan_it/Texts/description.dart';
+import 'package:plan_it/Texts/header.dart';
+import 'package:plan_it/Texts/special_description.dart';
 
 class EventDetails extends StatefulWidget {
   final Map<dynamic, dynamic> eventData;
@@ -9,7 +14,6 @@ class EventDetails extends StatefulWidget {
 }
 
 class _EventDetailsState extends State<EventDetails> {
-
   void _endEvent() {
     showDialog(
       context: context,
@@ -30,7 +34,7 @@ class _EventDetailsState extends State<EventDetails> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
-              child: const Text('Delete'),
+              child: const Text('End'),
             ),
           ],
         );
@@ -38,6 +42,10 @@ class _EventDetailsState extends State<EventDetails> {
     );
   }
 
+  String formatDateTime(DateTime dateTime) {
+    final DateFormat formatter = DateFormat("MMMM dd, yyyy '@' h:mm a");
+    return formatter.format(dateTime);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,17 +53,26 @@ class _EventDetailsState extends State<EventDetails> {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.eventData['name']),
+            Header(text: widget.eventData['name']),
             const SizedBox(height: 10,),
-            Text(widget.eventData['description']),
+            if (widget.eventData['description']?.isNotEmpty ?? false)
+              Column(
+                children: [
+                  Description(text: widget.eventData['description']),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            SpecialDescription(text: 'Coordinates: ${widget.eventData['coordinates']}'),
             const SizedBox(height: 10,),
-            Text(widget.eventData['coordinates']),
+            SpecialDescription(text: 'Date and Time: ${formatDateTime(DateTime.parse(widget.eventData['schedule']))}',
+            ),
             const SizedBox(height: 10,),
-            ElevatedButton(
-              onPressed: () => _endEvent(),
-              child: const Text('End'),
-            )
+            // Button1(
+            //   func: () => _endEvent(),
+            //   text: 'End',
+            // ),
           ],
         ),
       ),

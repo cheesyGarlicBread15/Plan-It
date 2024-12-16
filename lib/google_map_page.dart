@@ -1,6 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:plan_it/Buttons/button1.dart';
 import 'package:plan_it/create_event.dart';
 import 'package:plan_it/event_details.dart';
 
@@ -45,34 +46,55 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   }
 
   void _fetchEvents() {
-    dbRef.onValue.listen((onData) {
-    final data = onData.snapshot.value as Map?;
-    if (data != null) {
-      setState(() {
-        markers.clear();
-        data.forEach((key, value) {
-          final name = value['name'];
-          final description = value['description'];
-          final coordinates = value['coordinates'];
-          final coordList = coordinates.split(',');
+  dbRef.onValue.listen((onData) {
+    try {
+      final data = onData.snapshot.value as Map?;
+      if (data != null && data.isNotEmpty) {
+        setState(() {
+          markers.clear();
+          data.forEach((key, value) {
+            final name = value['name'];
+            final description = value['description'];
+            final coordinates = value['coordinates'];
 
-          if (coordList.length == 2) {
-            final lat = double.parse(coordList[0]);
-            final lng = double.parse(coordList[1]);
-            markers.add(
-              Marker(
-                markerId: MarkerId(key),
-                position: LatLng(lat, lng),
-                infoWindow: InfoWindow(title: name, snippet: description),
-                onTap: () => _showEvent(key),
-              ),
-            );
-          }
+            if (coordinates != null && coordinates.isNotEmpty) {
+              final coordList = coordinates.split(',');
+
+              if (coordList.length == 2) {
+                final lat = double.tryParse(coordList[0]);
+                final lng = double.tryParse(coordList[1]);
+
+                if (lat != null && lng != null) {
+                  markers.add(
+                    Marker(
+                      markerId: MarkerId(key),
+                      position: LatLng(lat, lng),
+                      infoWindow: InfoWindow(title: name, snippet: description),
+                      onTap: () => _showEvent(key),
+                    ),
+                  );
+                } else {
+                  print("Invalid coordinates for event: $key");
+                }
+              }
+            }
+          });
         });
-      });
+      } else {
+        setState(() {
+          markers.clear(); 
+        });
+        print("No events found in the database.");
+      }
+    } catch (e) {
+      print("Error fetching events: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load events.')),
+      );
     }
-    });
-  }
+  });
+}
+
 
   void _showEvent(String eventId) async {
     print(eventId);
@@ -84,12 +106,12 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
     }
     print(eventData);
     showModalBottomSheet(
-      isScrollControlled: true, // Allow height and full-width customization
+      isScrollControlled: true,
       context: context,
       builder: (ctx) => Container(
-        width: MediaQuery.of(context).size.width, // Full screen width
+        width: MediaQuery.of(context).size.width,
         child: FractionallySizedBox(
-          heightFactor: 0.35, // Modal takes 50% of screen height
+          heightFactor: 0.35,
           child: EventDetails(eventData: eventData),
         ),
       ),
@@ -121,6 +143,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
       body: Stack(
         children: [
           GoogleMap(
+            zoomControlsEnabled: false,
             initialCameraPosition: const CameraPosition(
               target: initPos,
               zoom: 13,
@@ -130,7 +153,7 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
           ),
           Positioned(
             bottom: 20,
-            left: 20,
+            right: 20,
             child: !markCoord ? FloatingActionButton(
               onPressed: _createEvent,
               child: const Icon(Icons.add),
@@ -143,8 +166,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                markCoord ? ElevatedButton(
-                  onPressed: () {
+                markCoord ? Button1(
+                  func: () {
                     setState(() {
                       if (event != null) {
                         inputs.remove('eventCoordinates');
@@ -154,16 +177,17 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                       markCoord = false;
                     });
                   },
-                  child: const Text('Cancel'),
+                  text: 'Cancel',
                 ) : Container(),
-                markCoord ? ElevatedButton(
-                  onPressed: () {
+                const SizedBox(width: 20,),
+                markCoord ? Button1(
+                  func: () {
                     if (event != null) {
                       inputs['eventCoordinates'] = "${event!.position.latitude.toStringAsFixed(6)}, ${event!.position.longitude.toStringAsFixed(6)}";
                     }
                     _createEvent();
                   },
-                  child: const Text('Done'),
+                  text: 'Done',
                 ) : Container()
               ],
             ),
