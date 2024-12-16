@@ -134,7 +134,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
                   polylineId: const PolylineId('overview_polyline'),
                   color: Colors.blue,
                   width: 5,
-                  points: _info.polylinePoints.map((e) => LatLng(e.latitude, e.longitude)).toList(),
+                  points: _info!.polylinePoints.map((e) => LatLng(e.latitude, e.longitude)).toList(),
+                  // points: _info.polylinePoints.map((e) => LatLng(e.latitude, e.longitude)).toList(),
                 )
             },
           ),
