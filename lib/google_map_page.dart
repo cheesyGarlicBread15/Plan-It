@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:plan_it/Buttons/button1.dart';
 import 'package:plan_it/create_event.dart';
 import 'package:plan_it/event_details.dart';
+import 'package:location/location.dart';
 
 class GoogleMapPage extends StatefulWidget {
   const GoogleMapPage({super.key});
@@ -21,6 +22,8 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   final dbRef = FirebaseDatabase.instance.ref().child('events');
   Set<Marker> markers = {};
   Map<String, dynamic> inputs = {};
+  final locationController = Location();
+  LatLng? currentPos;
 
   void _markEvent(LatLng pos) {
     print("put marker");
@@ -43,58 +46,58 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   void initState() {
     super.initState();
     _fetchEvents();
+    WidgetsBinding.instance.addPostFrameCallback((_) async => await fetchLocUpdates());
   }
 
   void _fetchEvents() {
-  dbRef.onValue.listen((onData) {
-    try {
-      final data = onData.snapshot.value as Map?;
-      if (data != null && data.isNotEmpty) {
-        setState(() {
-          markers.clear();
-          data.forEach((key, value) {
-            final name = value['name'];
-            final description = value['description'];
-            final coordinates = value['coordinates'];
+    dbRef.onValue.listen((onData) {
+      try {
+        final data = onData.snapshot.value as Map?;
+        if (data != null && data.isNotEmpty) {
+          setState(() {
+            markers.clear();
+            data.forEach((key, value) {
+              final name = value['name'];
+              final description = value['description'];
+              final coordinates = value['coordinates'];
 
-            if (coordinates != null && coordinates.isNotEmpty) {
-              final coordList = coordinates.split(',');
+              if (coordinates != null && coordinates.isNotEmpty) {
+                final coordList = coordinates.split(',');
 
-              if (coordList.length == 2) {
-                final lat = double.tryParse(coordList[0]);
-                final lng = double.tryParse(coordList[1]);
+                if (coordList.length == 2) {
+                  final lat = double.tryParse(coordList[0]);
+                  final lng = double.tryParse(coordList[1]);
 
-                if (lat != null && lng != null) {
-                  markers.add(
-                    Marker(
-                      markerId: MarkerId(key),
-                      position: LatLng(lat, lng),
-                      infoWindow: InfoWindow(title: name, snippet: description),
-                      onTap: () => _showEvent(key),
-                    ),
-                  );
-                } else {
-                  print("Invalid coordinates for event: $key");
+                  if (lat != null && lng != null) {
+                    markers.add(
+                      Marker(
+                        markerId: MarkerId(key),
+                        position: LatLng(lat, lng),
+                        infoWindow: InfoWindow(title: name, snippet: description),
+                        onTap: () => _showEvent(key),
+                      ),
+                    );
+                  } else {
+                    print("Invalid coordinates for event: $key");
+                  }
                 }
               }
-            }
+            });
           });
-        });
-      } else {
-        setState(() {
-          markers.clear(); 
-        });
-        print("No events found in the database.");
+        } else {
+          setState(() {
+            markers.clear(); 
+          });
+          print("No events found in the database.");
+        }
+      } catch (e) {
+        print("Error fetching events: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load events.')),
+        );
       }
-    } catch (e) {
-      print("Error fetching events: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load events.')),
-      );
-    }
-  });
-}
-
+    });
+  }
 
   void _showEvent(String eventId) async {
     print(eventId);
@@ -134,6 +137,35 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   void _onMarkEvent(bool val) {
     setState(() {
       markCoord = val;
+    });
+  }
+
+  Future<void> fetchLocUpdates() async {
+    bool serviceEnabled;
+    PermissionStatus granted;
+    
+    serviceEnabled = await locationController.serviceEnabled();
+    if (serviceEnabled) {
+      serviceEnabled = await locationController.requestService();
+    } else {
+      return;
+    }
+
+    granted = await locationController.hasPermission();
+    if (granted == PermissionStatus.denied) {
+      granted = await locationController.requestPermission();
+      if (granted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    locationController.onLocationChanged.listen((currentLoc) {
+      if (currentLoc.latitude != null && currentLoc.longitude != null) {
+        setState(() {
+          currentPos = LatLng(currentLoc.latitude!, currentLoc.longitude!);
+        });
+        print(currentPos);
+      }
     });
   }
 
