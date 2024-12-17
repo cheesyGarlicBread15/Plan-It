@@ -1,3 +1,3 @@
 # plan_it
 
-A new Flutter project.
+A Flutter Project that utilizes Google Maps and Firebase
